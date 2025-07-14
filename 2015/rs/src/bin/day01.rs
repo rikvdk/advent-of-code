@@ -9,11 +9,11 @@ fn main() {
         .read_line(&mut input)
         .expect("Failed to read input");
 
-    for (i, c) in input.chars().enumerate() {
+    for (i, c) in input.trim().chars().enumerate() {
         match c {
             '(' => part1 += 1,
             ')' => part1 -= 1,
-            _ => (),
+            _ => panic!("Invalid character '{c}' (U+{:04x})", c as u32),
         }
 
         if part2 == 0 && part1 == -1 {
