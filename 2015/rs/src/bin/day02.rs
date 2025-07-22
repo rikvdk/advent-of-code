@@ -24,6 +24,6 @@ fn main() {
         part2 += 2 * l + 2 * w + l * w * h;
     }
 
-    println!("{}", part1);
-    println!("{}", part2);
+    println!("{part1}");
+    println!("{part2}");
 }

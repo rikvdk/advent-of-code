@@ -21,6 +21,6 @@ fn main() {
         }
     }
 
-    println!("{}", part1);
-    println!("{}", part2);
+    println!("{part1}");
+    println!("{part2}");
 }
