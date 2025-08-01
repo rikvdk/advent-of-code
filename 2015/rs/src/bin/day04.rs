@@ -1,5 +1,5 @@
-use std::io;
 use md5::{Digest, Md5};
+use std::io;
 
 fn solve(key: &str, third_byte_max: u8) -> usize {
     for i in 1.. {
@@ -16,7 +16,6 @@ fn solve(key: &str, third_byte_max: u8) -> usize {
 
     unreachable!("No valid hash found");
 }
-
 
 fn main() {
     let mut input = String::new();
