@@ -8,14 +8,16 @@ fn parse_dimensions(s: &str) -> [i32; 3] {
         .sorted()
         .collect::<Vec<_>>()
         .try_into()
-        .unwrap()
+        .expect("Failed to parse dimensions")
 }
 
 fn main() {
     let mut part1 = 0;
     let mut part2 = 0;
 
-    let lines = io::stdin().lines().map(Result::unwrap);
+    let lines = io::stdin()
+        .lines()
+        .map(|result| result.expect("Failed to read line from stdin"));
 
     for line in lines {
         let [l, w, h] = parse_dimensions(&line);
