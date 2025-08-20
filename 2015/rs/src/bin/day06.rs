@@ -1,60 +1,104 @@
-use regex::Regex;
 use std::io;
+use std::str::FromStr;
 
 const GRID_SIZE: usize = 1000;
-const COMMAND_CHAR_INDEX: usize = 6;
-const TURN_ON_INDICATOR: char = 'n';
-const TURN_OFF_INDICATOR: char = 'f';
-const TOGGLE_INDICATOR: char = ' ';
+
+#[derive(Clone, Copy)]
+enum Action {
+    TurnOn,
+    TurnOff,
+    Toggle,
+}
+
+struct Point {
+    x: usize,
+    y: usize,
+}
+
+impl FromStr for Point {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (x, y) = s
+            .split_once(',')
+            .ok_or_else(|| format!("Point must be in the form 'x,y', got '{s}'"))?;
+
+        Ok(Self {
+            x: x.parse()
+                .map_err(|e| format!("Failed to parse x coordinate '{x}': {e}"))?,
+            y: y.parse()
+                .map_err(|e| format!("Failed to parse y coordinate '{y}': {e}"))?,
+        })
+    }
+}
+
+pub struct Instruction {
+    action: Action,
+    from: Point,
+    to: Point,
+}
+
+impl FromStr for Instruction {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (action, rest) = if let Some(r) = s.strip_prefix("turn on ") {
+            (Action::TurnOn, r)
+        } else if let Some(r) = s.strip_prefix("turn off ") {
+            (Action::TurnOff, r)
+        } else if let Some(r) = s.strip_prefix("toggle ") {
+            (Action::Toggle, r)
+        } else {
+            return Err(format!("Invalid instruction: {s}"));
+        };
+
+        let (from, to) = rest
+            .split_once(" through ")
+            .ok_or_else(|| "Instruction must contain ' through ' to separate points")?;
+        let from = from.parse()?;
+        let to = to.parse()?;
+
+        Ok(Self { action, from, to })
+    }
+}
 
 fn main() {
-    let mut grid1 = vec![[false; GRID_SIZE]; GRID_SIZE];
-    let mut grid2 = vec![[0u32; GRID_SIZE]; GRID_SIZE];
-
-    let re = Regex::new(r"\d+").expect("Failed to compile regex");
+    let mut grid1 = Box::new([false; GRID_SIZE * GRID_SIZE]);
+    let mut grid2 = Box::new([0u32; GRID_SIZE * GRID_SIZE]);
 
     let lines = io::stdin()
         .lines()
         .map(|result| result.expect("Failed to read line from stdin"));
 
     for line in lines {
-        let command = line
-            .chars()
-            .nth(COMMAND_CHAR_INDEX)
-            .expect("Failed to extract command charachter");
+        let instruction = line
+            .parse::<Instruction>()
+            .expect("Failed to parse Instruction");
 
-        let mut it = re
-            .find_iter(&line)
-            .map(|m| m.as_str().parse::<usize>().expect("Failed to parse number"));
+        for y in instruction.from.y..=instruction.to.y {
+            for x in instruction.from.x..=instruction.to.x {
+                let index = y * GRID_SIZE + x;
 
-        let x1 = it.next().expect("Failed to extract first number");
-        let y1 = it.next().expect("Failed to extract second number");
-        let x2 = it.next().expect("Failed to extract third number");
-        let y2 = it.next().expect("Failed to extract fourth number");
-
-        for y in y1..=y2 {
-            for x in x1..=x2 {
-                match command {
-                    TURN_ON_INDICATOR => {
-                        grid1[y][x] = true;
-                        grid2[y][x] += 1;
+                match instruction.action {
+                    Action::TurnOn => {
+                        grid1[index] = true;
+                        grid2[index] += 1;
                     }
-                    TURN_OFF_INDICATOR => {
-                        grid1[y][x] = false;
-                        grid2[y][x] = grid2[y][x].saturating_sub(1);
+                    Action::TurnOff => {
+                        grid1[index] = false;
+                        grid2[index] = grid2[index].saturating_sub(1);
                     }
-                    TOGGLE_INDICATOR => {
-                        grid1[y][x] = !grid1[y][x];
-                        grid2[y][x] += 2;
+                    Action::Toggle => {
+                        grid1[index] = !grid1[index];
+                        grid2[index] += 2;
                     }
-                    _ => unreachable!(),
                 }
             }
         }
     }
 
-    let part1 = grid1.iter().flatten().filter(|&&v| v).count();
-    let part2: u32 = grid2.iter().flatten().sum();
+    let part1 = grid1.iter().filter(|&&v| v).count();
+    let part2: u32 = grid2.iter().sum();
 
     println!("{part1}");
     println!("{part2}");
