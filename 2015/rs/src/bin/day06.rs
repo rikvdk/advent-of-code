@@ -54,7 +54,7 @@ impl FromStr for Instruction {
 
         let (from, to) = rest
             .split_once(" through ")
-            .ok_or_else(|| "Instruction must contain ' through ' to separate points")?;
+            .ok_or("Instruction must contain ' through ' to separate points")?;
         let from = from.parse()?;
         let to = to.parse()?;
 
