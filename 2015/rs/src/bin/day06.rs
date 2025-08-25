@@ -63,8 +63,8 @@ impl FromStr for Instruction {
 }
 
 fn main() {
-    let mut grid1 = Box::new([false; GRID_SIZE * GRID_SIZE]);
-    let mut grid2 = Box::new([0u32; GRID_SIZE * GRID_SIZE]);
+    let mut grid1 = vec![false; GRID_SIZE * GRID_SIZE].into_boxed_slice();
+    let mut grid2 = vec![0u32; GRID_SIZE * GRID_SIZE].into_boxed_slice();
 
     let lines = io::stdin()
         .lines()
